@@ -47,7 +47,7 @@
 - [x] **Write `.gitignore`**
   Ignore: `node_modules/`, `.env`, `.env.local`, `dist/`, `.DS_Store`, `*.log`.
 
-- [ ] **Initial git commit**
+- [x] **Initial git commit**
   Stage all files. Commit message: `"Phase 0: project scaffold with MV3 manifest and directory structure"`.
 
 ### Phase 0 — Verification
