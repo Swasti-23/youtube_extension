@@ -1,0 +1,38 @@
+---
+description: Data contract definitions, JSON schemas, and structural expectations for LLM interactions.
+globs: "backend/api/**/*, extension/sidepanel/sidepanel.js"
+alwaysApply: false
+---
+# DATA CONTRACT & OUTPUT SCHEMAS
+
+Whenever processing text, the LLM backend router must explicitly adhere to these structured output patterns:
+
+### Skill 1: generate_structured_notes
+Expected output data signature:
+{
+  "core_concepts": [
+    { "timestamp": "00:00", "concept_title": "string", "summary_bullets": ["string"] }
+  ],
+  "problem_solving_rationale": { "problem_statement": "string", "why_this_approach": "string" },
+  "key_takeaways": ["string"]
+}
+
+### Skill 2: extract_math_and_logic
+Expected output data signature:
+{
+  "has_math": true,
+  "math_blocks": [{ "description": "string", "latex_expression": "string" }],
+  "has_logic": true,
+  "logic_blocks": [{ "block_title": "string", "pseudocode": "string" }]
+}
+
+### Skill 3: simulate_dry_run_trace
+Expected output data signature:
+{
+  "input_received": "string",
+  "variable_tracking_headers": ["Step", "Variable1", "Variable2"],
+  "trace_steps": [
+    ["1", "value1", "value2"]
+  ],
+  "final_state_summary": "string"
+}

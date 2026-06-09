@@ -1,0 +1,21 @@
+---
+description: High-level vision, rules, boundaries, and features for the YouTube Deep-Dive Extractor.
+globs: "**/*"
+alwaysApply: true
+---
+# PRODUCT REQUIREMENT DOCUMENT (PRD)
+
+## Core Objective
+A production-grade Chrome Extension Side Panel that transforms passive long-form video watching into an active learning experience by extracting structured technical notes, rendering high-fidelity mathematical/logical blocks, and providing an interactive variable state tracer.
+
+## Functional Requirements & Feature Specifications
+1. **Structural Smart Summary:** Parses transcripts into Core Concepts, Algorithmic "Why", and Key Takeaways.
+2. **Math & Logic Deep-Dive Extractor:** - Formulas must use explicit LaTeX display formatting blocks (e.g., $$f(x) = \sigma(W^T x + b)$$).
+   - Logic must use clean, language-agnostic pseudocode styles.
+3. **Interactive Step-by-Step Dry Run Tracer:** Simulates execution tracking in an absolute markdown table format. *Constraint: User input is max 8 elements / 15 chars to ensure absolute LLM precision.*
+4. **Interactive Timeline Sync:** Prepends clickable timestamp identifiers (e.g., `[04:12]`) that programmatically jump the YouTube player tab to that runtime.
+
+## Technical Constraints
+- Must run exclusively on **Chrome Extension Manifest V3**.
+- **No client-side master API keys allowed.** All LLM synthesis routes through a serverless backend proxy layer.
+- **Two-Tier caching:** Reads pull from `chrome.storage.local` first, falling back to a database instance only on local cache misses.

@@ -1,0 +1,21 @@
+---
+description: Coding rules, architectural design patterns, and Manifest V3 constraints.
+globs: "extension/**/*, backend/**/*"
+alwaysApply: false
+---
+# TECHNICAL ARCHITECTURE & CODING INSTRUCTIONS
+
+## Project Directory Schema
+Maintain the repository strictly to this design:
+- `extension/` -> manifest.json, background.js, content.js
+- `extension/sidepanel/` -> sidepanel.html, sidepanel.css, sidepanel.js
+- `backend/api/` -> extract.js, sync.js
+
+## Security & Extension Rules (Manifest V3)
+- NO Remotely Hosted Code: All script logic must be packaged locally inside the extension folder.
+- NO Direct API Requests to LLM Providers from Client: The extension frontend must never fetch `api.openai.com` or `generativelanguage.googleapis.com` directly. Route all requests through the `backend/api/` runtime.
+
+## Code Style
+- Write asynchronous code with clean `async/await` patterns wrapper-protected by explicit `try/catch` handlers.
+- On backend failure, the sidepanel UI must gracefully display an actionable retry component.
+- Avoid raw `innerHTML` injections from LLM responses to mitigate Cross-Site Scripting (XSS). Sanitize or parse markdown safely using standard, isolated web component DOM nodes.

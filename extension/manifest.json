@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Deep-Dive Extractor",
+  "version": "0.1.0",
+  "description": "Transform long-form YouTube videos into structured technical notes with math, logic, and dry-run tracing.",
+  "permissions": ["sidePanel", "activeTab", "storage", "tabs", "scripting"],
+  "host_permissions": ["*://*.youtube.com/*"],
+  "action": {
+    "default_title": "YouTube Deep-Dive Extractor"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel/sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
