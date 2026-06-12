@@ -3,7 +3,7 @@
 > Derived from `ROADMAP.md`. Every task has context explaining *what* and *why*.
 > Mark items `[x]` as you complete them. Add new tasks as they're discovered.
 > 
-> **Current Phase:** Phase 0 — Project Scaffolding
+> **Current Phase:** Phase 3 — Backend Serverless Proxy Layer
 
 ---
 
@@ -52,11 +52,11 @@
 
 ### Phase 0 — Verification
 
-- [ ] Extension loads in `chrome://extensions` (Load Unpacked) with zero errors and zero warnings
-- [ ] YouTube page shows content script log in DevTools console
-- [ ] Clicking extension icon opens the side panel with the HTML shell
-- [ ] Service worker shows "registered" in extension detail view
-- [ ] `git log` confirms the initial commit
+- [x] Extension loads in `chrome://extensions` (Load Unpacked) with zero errors and zero warnings
+- [x] YouTube page shows content script log in DevTools console
+- [x] Clicking extension icon opens the side panel with the HTML shell
+- [x] Service worker shows "registered" in extension detail view
+- [x] `git log` confirms the initial commit
 
 ---
 
@@ -64,40 +64,40 @@
 
 > **Why this phase exists:** Every feature (transcript extraction, LLM calls, timestamp seeking) requires messages to flow between content script ↔ background ↔ sidepanel. Building this bus now means features just add action cases — they never reinvent messaging.
 
-- [ ] **Define message protocol shape**
+- [x] **Define message protocol shape**
   Standard shape for every message: `{ action: string, payload: object, tabId?: number }`. Standard response: `{ success: boolean, data?: object, error?: string }`. Document in a comment block at the top of `background.js`.
 
-- [ ] **Implement central message router in `background.js`**
+- [x] **Implement central message router in `background.js`**
   Add `chrome.runtime.onMessage` listener with a `switch` on `message.action`. Initial actions: `"PING"` returns `{ status: "PONG" }`. Use `sendResponse` with `return true` for async handlers.
 
-- [ ] **Add `RELAY_TO_TAB` action in `background.js`**
+- [x] **Add `RELAY_TO_TAB` action in `background.js`**
   Receives `{ tabId, payload }`. Forwards payload to the specified tab via `chrome.tabs.sendMessage(tabId, payload)`. Returns the tab's response.
 
-- [ ] **Add `RELAY_TO_SIDEPANEL` action in `background.js`**
+- [x] **Add `RELAY_TO_SIDEPANEL` action in `background.js`**
   Forwards payload via `chrome.runtime.sendMessage`. The sidepanel (which listens on `chrome.runtime.onMessage`) picks it up.
 
-- [ ] **Implement message listener in `content.js`**
+- [x] **Implement message listener in `content.js`**
   Add `chrome.runtime.onMessage` listener. For now, log received messages. Respond with `{ success: true }` for any recognized action.
 
-- [ ] **Implement `sendToBackground` helper in `content.js`**
+- [x] **Implement `sendToBackground` helper in `content.js`**
   Promise-based wrapper: `sendToBackground(action, payload) → Promise<response>`. Checks `chrome.runtime.lastError` and rejects on error.
 
-- [ ] **Implement message listener in `sidepanel.js`**
+- [x] **Implement message listener in `sidepanel.js`**
   Add `chrome.runtime.onMessage` listener. Log received messages. This is how background relays data to the panel.
 
-- [ ] **Implement `sendToBackground` helper in `sidepanel.js`**
+- [x] **Implement `sendToBackground` helper in `sidepanel.js`**
   Same Promise-based wrapper pattern as content.js.
 
-- [ ] **Add error handling for `chrome.runtime.lastError`**
+- [x] **Add error handling for `chrome.runtime.lastError`**
   In every `sendMessage` callback/Promise, check `chrome.runtime.lastError`. If set, log the error and reject the Promise.
 
 ### Phase 1 — Verification
 
-- [ ] Sidepanel sends `PING`, receives `PONG` in console
-- [ ] Sidepanel sends `RELAY_TO_TAB`, content script logs the payload
-- [ ] Content script sends `RELAY_TO_SIDEPANEL`, sidepanel logs the payload
-- [ ] Malformed message logs an error, does not crash the service worker
-- [ ] Message flows work after navigating between YouTube videos (no extension reload needed)
+- [x] Sidepanel sends `PING`, receives `PONG` in console
+- [x] Sidepanel sends `RELAY_TO_TAB`, content script logs the payload
+- [x] Content script sends `RELAY_TO_SIDEPANEL`, sidepanel logs the payload
+- [x] Malformed message logs an error, does not crash the service worker
+- [x] Message flows work after navigating between YouTube videos (no extension reload needed)
 
 ---
 
@@ -105,29 +105,29 @@
 
 > **Why this phase exists:** Every feature depends on the video transcript. This phase builds the content script's ability to scrape it from YouTube's DOM, pass it through the message bus, and display it in the sidepanel.
 
-- [ ] **Write `extractTranscript()` in `content.js`**
+- [x] **Write `extractTranscript()` in `content.js`**
   Scrapes YouTube's transcript. Strategy:
   1. Try to find transcript data in `ytInitialPlayerResponse` (fast, no DOM click).
   2. Fallback: click "Show transcript" button, wait for DOM population via `MutationObserver`.
   3. Parse segments into `{ timestamp: "MM:SS", text: "string" }[]`.
   4. Return the array. On failure, return `{ error: "TRANSCRIPT_UNAVAILABLE" }`.
 
-- [ ] **Add `GET_TRANSCRIPT` action in `background.js`**
+- [x] **Add `GET_TRANSCRIPT` action in `background.js`**
   Queries the active tab, sends `"GET_TRANSCRIPT"` to its content script, and returns the transcript data to the caller (sidepanel).
 
-- [ ] **Request transcript on sidepanel open**
+- [x] **Request transcript on sidepanel open**
   In `sidepanel.js`, on `DOMContentLoaded`: query active tab ID → send `GET_TRANSCRIPT` → on success, render timestamped lines → on failure, show "Transcript unavailable" + retry button.
 
-- [ ] **Add transcript container to `sidepanel.html`**
+- [x] **Add transcript container to `sidepanel.html`**
   A `<div id="transcript-container">` inside `<main>`. This is where raw transcript lines will render during Phase 2 (replaced by feature tabs in Phase 5).
 
-- [ ] **Style the raw transcript view in `sidepanel.css`**
+- [x] **Style the raw transcript view in `sidepanel.css`**
   Timestamp in monospace, text in regular font. Each line is a flex row. Scrollable container.
 
-- [ ] **Handle edge cases**
+- [x] **Handle edge cases**
   Video has no transcript → clear message. User navigates mid-extraction → abort and retry. Transcript language selector → take the first available language.
 
-- [ ] **Sanitize all transcript text before DOM insertion**
+- [x] **Sanitize all transcript text before DOM insertion**
   Use `textContent` only. No `innerHTML` anywhere. This is a hard rule from the security constraints.
 
 ### Phase 2 — Verification
