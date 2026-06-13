@@ -21,14 +21,8 @@ function sendToBackground(action, payload = {}, tabId) {
 }
 
 async function relayToActiveTab(relayPayload) {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-  if (!tab?.id) {
-    throw new Error("No active tab found");
-  }
-
   return sendToBackground("RELAY_TO_TAB", {
-    tabId: tab.id,
+    tabId: null,
     payload: relayPayload,
   });
 }
@@ -40,6 +34,10 @@ let transcriptLoadGeneration = 0;
 
 function getTranscriptContainer() {
   return document.getElementById("transcript-container");
+}
+
+function getFooterMessageElement() {
+  return document.getElementById("footer-message");
 }
 
 function clearContainer(container) {
@@ -100,16 +98,61 @@ function renderTranscript(container, transcript) {
   }
 }
 
-function isYouTubeWatchUrl(url) {
-  try {
-    const parsedUrl = new URL(url);
-    return (
-      parsedUrl.hostname.includes("youtube.com") &&
-      parsedUrl.pathname === "/watch"
-    );
-  } catch {
-    return false;
+function updateFooterMessage(response) {
+  const footerMessage = getFooterMessageElement();
+  if (!footerMessage) {
+    return;
   }
+
+  if (response?.success) {
+    footerMessage.textContent = "Showing raw transcript for the active video.";
+    return;
+  }
+
+  if (response?.error === "Navigate to a YouTube video to get started.") {
+    footerMessage.textContent =
+      "Open a YouTube watch page in this browser window.";
+    return;
+  }
+
+  footerMessage.textContent =
+    "Transcript could not be loaded for this video.";
+}
+
+function getDisplayErrorMessage(response) {
+  if (response?.error === "Navigate to a YouTube video to get started.") {
+    return response.error;
+  }
+
+  return "Transcript unavailable";
+}
+
+async function resolveYouTubeTabId() {
+  const focusedWindow = await chrome.windows.getLastFocused({
+    windowTypes: ["normal"],
+  });
+
+  if (focusedWindow?.id) {
+    const windowTabs = await chrome.tabs.query({
+      windowId: focusedWindow.id,
+      url: ["*://www.youtube.com/watch*", "*://youtube.com/watch*"],
+    });
+
+    const activeTab = windowTabs.find((tab) => tab.active);
+    if (activeTab?.id) {
+      return activeTab.id;
+    }
+
+    if (windowTabs[0]?.id) {
+      return windowTabs[0].id;
+    }
+  }
+
+  const youtubeTabs = await chrome.tabs.query({
+    url: ["*://www.youtube.com/watch*", "*://youtube.com/watch*"],
+  });
+
+  return youtubeTabs.find((tab) => tab.active)?.id ?? youtubeTabs[0]?.id ?? null;
 }
 
 async function loadTranscript() {
@@ -122,29 +165,39 @@ async function loadTranscript() {
   showLoading(container);
 
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const tabId = await resolveYouTubeTabId();
+
+    if (!tabId) {
+      updateFooterMessage({
+        success: false,
+        error: "Navigate to a YouTube video to get started.",
+      });
+      showMessage(
+        container,
+        "Navigate to a YouTube video to get started.",
+        true
+      );
+      return;
+    }
+
+    const response = await sendToBackground("GET_TRANSCRIPT", { tabId });
 
     if (loadGeneration !== transcriptLoadGeneration) {
       return;
     }
 
-    if (!tab?.url || !isYouTubeWatchUrl(tab.url)) {
-      showMessage(container, "Navigate to a YouTube video to get started.");
-      return;
+    if (response?.debug) {
+      console.log("[YT Deep-Dive] Transcript debug:", response.debug);
     }
 
-    const response = await sendToBackground("GET_TRANSCRIPT", { tabId: tab.id });
-
-    if (loadGeneration !== transcriptLoadGeneration) {
-      return;
-    }
+    updateFooterMessage(response);
 
     if (response?.success && Array.isArray(response.data?.transcript)) {
       renderTranscript(container, response.data.transcript);
       return;
     }
 
-    showRetry(container, "Transcript unavailable", () => {
+    showRetry(container, getDisplayErrorMessage(response), () => {
       loadTranscript();
     });
   } catch (error) {
@@ -152,6 +205,7 @@ async function loadTranscript() {
       return;
     }
 
+    updateFooterMessage({ success: false });
     showRetry(container, "Transcript unavailable", () => {
       loadTranscript();
     });

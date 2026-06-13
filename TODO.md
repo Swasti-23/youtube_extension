@@ -132,11 +132,11 @@
 
 ### Phase 2 — Verification
 
-- [ ] Sidepanel on a video with transcript → shows timestamped text within 3 seconds
-- [ ] Sidepanel on a video without transcript → "Transcript unavailable" + retry button
-- [ ] Navigate to new video, re-open sidepanel → new transcript loads
-- [ ] Zero `innerHTML` matches in code search
-- [ ] Transcript matches YouTube's native transcript panel word-for-word
+- [x] Sidepanel on a video with transcript → shows timestamped text within 3 seconds
+- [x] Sidepanel on a video without transcript → "Transcript unavailable" + retry button
+- [x] Navigate to new video, re-open sidepanel → new transcript loads
+- [x] Zero `innerHTML` matches in code search
+- [x] Transcript matches YouTube's native transcript panel word-for-word
 
 ---
 
