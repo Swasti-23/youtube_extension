@@ -144,19 +144,19 @@
 
 > **Why this phase exists:** The PRD mandates zero client-side API keys. This phase builds the secure backend that receives transcript + skill name, calls the LLM, validates the response against the schemas in `03-skills.mdc`, and returns structured JSON.
 
-- [ ] **Initialize `backend/package.json`**
+- [x] **Initialize `backend/package.json`**
   Add dependencies: LLM SDK (e.g., `openai` or `@google/generative-ai`), a lightweight schema validator. Set `"type": "module"` for ES module support.
 
-- [ ] **Create `backend/.env.example`**
+- [x] **Create `backend/.env.example`**
   Document all required env vars: `LLM_API_KEY`, `LLM_MODEL`, `LLM_PROVIDER`, `ALLOWED_ORIGIN`, `DATABASE_URL`. Never commit actual `.env` (already in `.gitignore`).
 
-- [ ] **Implement `backend/shared/schemas.js`**
+- [x] **Implement `backend/shared/schemas.js`**
   Three validation functions — one per skill. Each checks structural shape (required keys, correct types, arrays are arrays). Returns `{ valid: boolean, errors: string[] }`. Does NOT validate content quality.
 
-- [ ] **Implement `backend/shared/prompt-templates.js`**
+- [x] **Implement `backend/shared/prompt-templates.js`**
   Exports `getPromptForSkill(skillName, transcript, params)` → `{ system, user }`. System prompt defines role + JSON-only output + exact schema shape. User prompt contains transcript. Transcript capped at 80K chars.
 
-- [ ] **Implement `backend/api/extract.js`**
+- [x] **Implement `backend/api/extract.js`**
   Full serverless handler:
   1. Parse body → validate `skill` is in allowlist → validate `transcript` exists.
   2. Build prompt via `getPromptForSkill()`.
@@ -165,13 +165,13 @@
   5. On valid: return `{ success: true, data }`.
   6. On invalid: retry once → on second failure: return `{ success: false, error }`.
 
-- [ ] **Add CORS headers to `extract.js`**
+- [x] **Add CORS headers to `extract.js`**
   `Access-Control-Allow-Origin` set to `process.env.ALLOWED_ORIGIN` only. Handle `OPTIONS` preflight with `204`.
 
-- [ ] **Add basic rate limiting or auth token check**
+- [x] **Add basic rate limiting or auth token check**
   Prevent abuse. Simple per-IP rate limit (10 req/min) or a shared secret token in the `Authorization` header.
 
-- [ ] **Enhance `backend/api/sync.js` stub**
+- [x] **Enhance `backend/api/sync.js` stub**
   Accept cache-write requests (body: `{ videoId, skill, data }`). Return `501` for GET until Phase 4 implements the database.
 
 ### Phase 3 — Verification

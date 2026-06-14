@@ -1,0 +1,18 @@
+{
+  "name": "youtube-deep-dive-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Serverless proxy layer for YouTube Deep-Dive Extractor LLM skills",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.0",
+    "openai": "^4.104.0"
+  },
+  "scripts": {
+    "check": "node --check api/extract.js && node --check api/sync.js && node --check shared/schemas.js && node --check shared/prompt-templates.js && node --check shared/http.js && node --check shared/json-utils.js && node --check shared/llm.js && node --check shared/skills.js",
+    "test:phase3": "node scripts/phase3-smoke.js"
+  }
+}

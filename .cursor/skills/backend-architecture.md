@@ -20,6 +20,7 @@
 | `LLM_PROVIDER` | Which LLM provider to call | `openai` or `google` |
 | `LLM_MODEL` | Specific model identifier | `gpt-4o` or `gemini-pro` |
 | `ALLOWED_ORIGIN` | CORS allowlist for the extension | `chrome-extension://abcdef123` |
+| `API_AUTH_TOKEN` | Bearer token required by `/api/extract` and `/api/sync` | Shared secret checked against `Authorization` header |
 | `DATABASE_URL` | L2 cache database connection | (provider-specific) |
 
 ### Request/Response Contract
@@ -73,12 +74,27 @@ Every LLM skill is a named operation with a prompt template and a schema validat
 1. Define the output schema in `03-skills.mdc` under a new `### Skill N:` section.
 2. Add a validation function in `backend/shared/schemas.js`.
 3. Add a prompt template case in `backend/shared/prompt-templates.js`.
-4. Add the skill name to the `VALID_SKILLS` allowlist in `extract.js`.
+4. Add the skill name to the `VALID_SKILLS` allowlist in `shared/http.js` and a strategy entry in `shared/skills.js`.
 5. Update this table.
 
 ---
 
-## `backend/shared/schemas.js` — Schema Validation
+## `backend/shared/skills.js` — Strategy Registry
+
+Each skill is registered as a strategy object:
+
+```
+{
+  skillName,
+  buildPrompt(transcript, params) → { system, user },
+  validateOutput(data) → { valid, errors },
+  validateParams(params) → { ok, error? }   // optional, used by dry-run tracer
+}
+```
+
+`extract.js` resolves the strategy via `getSkillStrategy(skillName)` and executes the shared LLM + schema validation pipeline. This keeps the handler closed for modification while remaining open for new skills.
+
+---
 
 ### Pattern
 
